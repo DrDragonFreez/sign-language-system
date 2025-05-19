@@ -1,5 +1,7 @@
 import cv2
 import mediapipe as mp
+from recognizer import extract_landmark_vector
+
 
 mp_hands = mp.solutions.hands
 mp_drawing = mp.solutions.drawing_utils
@@ -39,6 +41,8 @@ def start_capture():
                     mp_drawing.DrawingSpec(color=(0, 255, 0), thickness=2, circle_radius=4),
                     mp_drawing.DrawingSpec(color=(255, 0, 0), thickness=2)
                 )
+                features = extract_landmark_vector(hand_landmarks)
+                print("Вектор признаков:", features[:6], "...")
 
         cv2.imshow("Распознавание руки", frame)
 

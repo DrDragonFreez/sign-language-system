@@ -1,0 +1,45 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# Виртуальные окружения
+venv/
+env/
+ENV/
+.venv/
+
+# IDE (VS Code, PyCharm и др.)
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# Логи и временные файлы
+*.log
+*.tmp
+*.swp
+*.bak
+.DS_Store
+
+# Файлы ОС
+Thumbs.db
+desktop.ini
+
+# Кэш и результаты
+*.mp4
+*.avi
+*.gif
+*.jpg
+*.png
+*.npy
+*.h5
+*.pb
+
+# Конфиденциальное (если появится)
+*.env
+*.key
+*.crt
+
+# Разрешённые файлы: все .py, .json, .md, .txt
