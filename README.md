@@ -17,6 +17,8 @@ cd sign-language-system
 pip install -r requirements.txt
 ```
 
+⚠️ На первое время файл model.pkl распазнается только в папке пользователя, так что лучше скопировать его туда
+
 ▶️ Запуск
 
 ```bash
@@ -32,4 +34,3 @@ python main.py
 ![image](https://github.com/user-attachments/assets/67c1e724-84ad-4a78-a7c4-fbb9d0f3a695)
 
 
-⚠️ На первое время файл model.pkl распазнается только в папке пользователя, так что лучше скопировать его туда
