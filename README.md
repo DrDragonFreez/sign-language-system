@@ -22,3 +22,10 @@ pip install -r requirements.txt
 ```bash
 python main.py
 ```
+
+Дактильная азбука
+![image](https://github.com/user-attachments/assets/4263334d-4838-4509-af51-e8dd2062d7b7)
+
+Цыфры
+![image](https://github.com/user-attachments/assets/67c1e724-84ad-4a78-a7c4-fbb9d0f3a695)
+
