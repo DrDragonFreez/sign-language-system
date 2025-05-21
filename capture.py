@@ -1,54 +1,66 @@
 import cv2
 import mediapipe as mp
-from recognizer import extract_landmark_vector
+from recognizer import extract_landmark_vector, predict_gesture
 
-
+# Инициализируем распознавание рук через MediaPipe
 mp_hands = mp.solutions.hands
-mp_drawing = mp.solutions.drawing_utils
+hands = mp_hands.Hands(
+    static_image_mode=False,
+    max_num_hands=2,  # Распознаём до двух рук
+    min_detection_confidence=0.5,
+    min_tracking_confidence=0.5
+)
 
-def start_capture():
-    cap = cv2.VideoCapture(0)
+# Подключаем камеру
+cap = cv2.VideoCapture(0)
 
-    if not cap.isOpened():
-        print("Не удалось открыть камеру.")
-        return
+while True:
+    success, frame = cap.read()
+    if not success:
+        break
 
-    hands = mp_hands.Hands(
-        static_image_mode=False,
-        max_num_hands=1,
-        min_detection_confidence=0.7,
-        min_tracking_confidence=0.5
-    )
+    # Отзеркаливаем изображение, чтобы было как в зеркале
+    frame = cv2.flip(frame, 1)
+    rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
 
-    print("Запуск камеры. Нажмите 'q' для выхода.")
+    # Получаем результат обработки кадра
+    results = hands.process(rgb)
 
-    while True:
-        ret, frame = cap.read()
-        if not ret:
-            print("Ошибка при получении кадра.")
-            break
+    if results.multi_hand_landmarks:
+        for hand_landmarks in results.multi_hand_landmarks:
+            # Рисуем соединения между точками руки
+            mp.solutions.drawing_utils.draw_landmarks(
+                frame,
+                hand_landmarks,
+                mp_hands.HAND_CONNECTIONS
+            )
 
-        frame = cv2.flip(frame, 1)
-        rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-        result = hands.process(rgb_frame)
+            # Преобразуем координаты точек в вектор признаков
+            feature_vector = extract_landmark_vector(hand_landmarks)
 
-        if result.multi_hand_landmarks:
-            for hand_landmarks in result.multi_hand_landmarks:
-                mp_drawing.draw_landmarks(
-                    frame,
-                    hand_landmarks,
-                    mp_hands.HAND_CONNECTIONS,
-                    mp_drawing.DrawingSpec(color=(0, 255, 0), thickness=2, circle_radius=4),
-                    mp_drawing.DrawingSpec(color=(255, 0, 0), thickness=2)
-                )
-                features = extract_landmark_vector(hand_landmarks)
-                print("Вектор признаков:", features[:6], "...")
+            # Распознаём жест
+            gesture = predict_gesture(feature_vector)
 
-        cv2.imshow("Распознавание руки", frame)
+            # Показываем название распознанного жеста на экране
+            cv2.putText(
+                frame,
+                f'Жест: {gesture}',
+                (10, 30),
+                cv2.FONT_HERSHEY_SIMPLEX,
+                1,
+                (0, 255, 0),
+                2
+            )
 
-        if cv2.waitKey(1) & 0xFF == ord('q'):
-            break
+    # Отображаем окно с результатом
+    cv2.imshow('Распознавание жестов (2 руки)', frame)
 
-    hands.close()
-    cap.release()
-    cv2.destroyAllWindows()
+    # Выход по 'q' или закрытию окна
+    if cv2.waitKey(1) & 0xFF == ord('q'):
+        break
+    if cv2.getWindowProperty('Распознавание жестов (2 руки)', cv2.WND_PROP_VISIBLE) < 1:
+        break
+
+# Освобождаем ресурсы
+cap.release()
+cv2.destroyAllWindows()
