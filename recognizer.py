@@ -5,7 +5,7 @@ import joblib
 try:
     model = joblib.load("model.pkl")
 except FileNotFoundError:
-    print("[!] Внимание: файл model.pkl не найден. Классификация не будет работать.")
+    print("Внимание: файл model.pkl не найден. Классификация не будет работать.")
     model = None
 
 def extract_landmark_vector(multi_hand_landmarks):
