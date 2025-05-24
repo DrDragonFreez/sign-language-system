@@ -1,4 +1,7 @@
-from capture import start_capture
+from GUI import GestureApp
+import tkinter as tk
 
 if __name__ == "__main__":
-    start_capture()
+    root = tk.Tk()
+    app = GestureApp(root)
+    root.mainloop()
