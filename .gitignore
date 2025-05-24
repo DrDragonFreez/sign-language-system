@@ -28,7 +28,7 @@ Thumbs.db
 desktop.ini
 
 # Кэш и результаты
-*.mp4
+
 *.avi
 *.gif
 *.jpg
