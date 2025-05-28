@@ -26,8 +26,8 @@ pip install -r requirements.txt
 ```
 
 ### Убедитесь, что в папке есть:
--	model.pkl, model1.pkl
-- dictionary.json
+-	model.pkl, S3D.onnx
+- dictionary.json, RSL_class_list.txt
 -	templates/ с .mp4 видео
 ###
 ▶️ Запуск
@@ -52,6 +52,9 @@ python main.py
 -	scikit-learn
 -	Tkinter
 -	NumPy, PIL
+-	ffmpeg-python
+-	customtkinter
+-	onnxruntime
 ##
 
 ## Дактильная азбука и цифры
