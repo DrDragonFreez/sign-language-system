@@ -1,51 +1,62 @@
+import cv2
 import numpy as np
-import joblib
+import onnxruntime
 
-# Загружаем модель для динамических жестов
-try:
-    model = joblib.load("model1.pkl")
-except FileNotFoundError:
-    print("Модель model1.pkl не найдена. Распознавание недоступно.")
-    model = None
+class DynamicRecognizer:
+    def __init__(self, model_path='S3D.onnx'):
+        self.session = onnxruntime.InferenceSession(model_path, providers=['CPUExecutionProvider'])
+        self.input_name = self.session.get_inputs()[0].name
+        self.frames = []
+        self.frame_skip = 1  # Пропускаем каждый второй кадр
+        self.skip_counter = 0
 
+        # Только нужные классы(пока что)
+        self.class_map = {
+            318: "досвидания",
+            392: "з",
+            434: "здравствуйте",
+            470: "инвалид",
+            492: "й",
+            493: "к",
+            1093: "привет",
+            1351: "спасибо",
+            1538: "ц",
+            1580: "щ",
+            1581: "ъ",
+            1597: "ё"
+        }
 
-def extract_landmark_vector(multi_hand_landmarks):
-    """
-    Извлекает нормализованные координаты x, y, z из до 2 рук.
-    Возвращает 126 признаков (или нули, если рука не найдена).
-    """
-    def normalize(landmarks):
-        base_x = landmarks[0].x
-        base_y = landmarks[0].y
-        base_z = landmarks[0].z
-        return [(lm.x - base_x, lm.y - base_y, lm.z - base_z) for lm in landmarks]
+    def preprocess(self, frame):
+        frame = cv2.resize(frame, (224, 224))
+        return frame.astype(np.float32) / 255.0
 
-    vector = []
-    hands = list(multi_hand_landmarks)[:2] if multi_hand_landmarks else []
+    def predict_dynamic(self, frame):
+        if self.skip_counter == 0:
+            self.frames.append(self.preprocess(frame))
+        self.skip_counter = (self.skip_counter + 1) % self.frame_skip
 
-    for hand in hands:
-        normalized = normalize(hand.landmark)
-        for x, y, z in normalized:
-            vector.extend([x, y, z])
+        if len(self.frames) < 32:
+            return None
 
-    # Дополняем нулями, если вторая рука отсутствует
-    while len(vector) < 126:
-        vector.extend([0.0, 0.0, 0.0])
+        self.frames = self.frames[-32:]
+        clip = np.stack(self.frames, axis=0)                # (32, 224, 224, 3)
+        clip = np.transpose(clip, (3, 0, 1, 2))              # (3, 32, 224, 224)
+        clip = np.expand_dims(clip, axis=0)                 # (1, 3, 32, 224, 224)
 
-    return np.array(vector)
+        preds = self.session.run(None, {self.input_name: clip})[0][0]
 
+        # Оставляем только нужные классы
+        filtered_preds = {k: preds[k] for k in self.class_map.keys()}
+        pred_class = max(filtered_preds, key=filtered_preds.get)
+        confidence = filtered_preds[pred_class]
 
-def predict_dynamic(sequence_40_frames, threshold=0.7):
-    """
-    Принимает список из 40 векторов (по 126 признаков каждый).
-    Объединяет в 1 вектор длиной 5040 и предсказывает жест.
-    """
-    if model is None or len(sequence_40_frames) != 40:
+        if confidence >= 0.6:
+            self.frames = []  # Очистка после успешного распознавания
+            return self.class_map[pred_class]
+
         return None
 
-    full_vector = np.concatenate(sequence_40_frames)  # → (5040,)
-    probabilities = model.predict_proba([full_vector])[0]
-    max_prob = max(probabilities)
-    predicted_label = model.classes_[np.argmax(probabilities)]
 
-    return predicted_label if max_prob >= threshold else None
+
+
+
