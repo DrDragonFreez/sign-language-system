@@ -4,3 +4,5 @@ numpy
 scikit-learn
 pysimplegui
 ffmpeg-python
+customtkinter
+onnxruntime
